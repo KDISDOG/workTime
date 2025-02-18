@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  background-color: #12131a;
+}
+body {
+  font-family: 'Nunito', sans-serif;
+  color: #e2e8f0;
+}
+input,select,textarea {
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  color: #12131a;
+  background: #e2e8f0;
+  border-radius: 0.25rem;
+}
