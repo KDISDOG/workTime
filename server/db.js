@@ -12,14 +12,16 @@ const db = new Database(dbPath, { verbose: console.log });
 
 // 建立 users 表格（如果不存在）
 db.exec(`
-  CREATE TABLE IF NOT EXISTS Project (
+  CREATE TABLE IF NOT EXISTS WorkTime (
       id INTEGER PRIMARY KEY AUTOINCREMENT, 
       date TEXT NOT NULL, 
       SR TEXT,
+      taskId TEXT,
       role TEXT, 
       pyrd TEXT, 
       workitem TEXT, 
-      time REAL
+      time REAL,
+      detail TEXT
   );
 `);
 

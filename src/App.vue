@@ -11,5 +11,7 @@ import { RouterLink, RouterView } from 'vue-router'
       <RouterLink to="/analyze">工時分析</RouterLink>
     </nav>
   </header>
-  <RouterView class="mt-3" />
+  <RouterView />
+
+
 </template>
