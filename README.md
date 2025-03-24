@@ -1,29 +1,35 @@
-# workTimeRecorder
+# 版本更新
 
-This template should help get you started developing with Vue 3 in Vite.
+20250324
+新增輸入時的動畫
+新增工時複製時需要填寫的欄位 highlight
+修正取消編輯沒有回復原本資料 BUG
 
-## Recommended IDE Setup
+# 第一步 在 cmd 進入資料夾輸入(有安裝 node.js，沒安裝自己 Google)
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+cd XXXXX
+npm i
 
-## Customize configuration
+# 第二步 進入 server 資料夾
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+cd server
 
-## Project Setup
+# 第三步 安裝 pm2
 
-```sh
-npm install
-```
+npm install -g pm2
 
-### Compile and Hot-Reload for Development
+# 第四步 架設 server
 
-```sh
-npm run dev
-```
+pm2 start server.js --name "my-app"
 
-### Compile and Minify for Production
+# 第五步 存檔
 
-```sh
-npm run build
-```
+pm2 save
+
+# 第六步 安裝開機自動啟動工具
+
+npm install -g pm2-windows-startup
+
+# 第七步 開啟工具
+
+pm2-startup install

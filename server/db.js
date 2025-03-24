@@ -21,8 +21,15 @@ db.exec(`
       pyrd TEXT, 
       workitem TEXT, 
       time REAL,
-      detail TEXT
+      detail TEXT,
+      taskname TEXT
   );
 `);
-
+// 新增 Tokens 資料表
+db.exec(`
+  CREATE TABLE IF NOT EXISTS Tokens (
+      id INTEGER PRIMARY KEY, 
+      token TEXT NOT NULL
+  );
+`);
 export default db;

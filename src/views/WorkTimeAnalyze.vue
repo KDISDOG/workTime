@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 py-6">
-    <h2 class="text-2xl font-bold text-white mb-6">工時階層報表</h2>
+    <h2 class="text-2xl font-bold text-white mb-6 text-center">工時報表</h2>
 
     <!-- 載入指示器 -->
     <div v-if="isLoading" class="flex justify-center items-center h-40">
@@ -20,20 +20,22 @@
         <div class="bg-gray-900 text-white px-6 py-4">
           <h3 class="text-xl font-bold flex justify-between items-center">
             <span>PYRD: {{ pyrdItem.pyrd || '無' }}</span>
-            <button @click="showSR(pyrdItem.pyrd)">{{ !showStatus[pyrdItem.pyrd] ?
-              "展開" : "關閉" }}</button>
+            <ChevronDownIcon class="size-6" v-if="!showStatus[pyrdItem.pyrd]" @click="showSR(pyrdItem.pyrd)">
+            </ChevronDownIcon>
+            <ChevronUpIcon class="size-6" v-else @click="showSR(pyrdItem.pyrd)"></ChevronUpIcon>
           </h3>
         </div>
 
         <!-- SR層級 -->
         <div v-show="showStatus[pyrdItem.pyrd]" v-for="srItem in objectToArray(pyrdItem.srGroups)" :key="srItem.SR"
           class="mx-4 mb-6 bg-gray-50 rounded-md overflow-hidden shadow">
-          <div class="bg-blue-700 text-white px-5 py-2.5 flex justify-between items-center">
+          <div class="bg-[#102a6f] text-white px-5 py-4 flex justify-between items-center">
             <h4 class="font-semibold">SR: {{ srItem.SR }}</h4>
             <div class="flex items-center gap-3">
               <span class="bg-blue-500 px-2 py-0.5 rounded text-sm">總時間: {{ srItem.totalTime }} h</span>
-              <button @click="showSR(srItem.SR)">{{ !showStatus[srItem.SR] ?
-                "展開" : "關閉" }}</button>
+              <ChevronDownIcon class="size-6" v-if="!showStatus[srItem.SR]" @click="showSR(srItem.SR)">
+              </ChevronDownIcon>
+              <ChevronUpIcon class="size-6" v-else @click="showSR(srItem.SR)"></ChevronUpIcon>
             </div>
           </div>
 
@@ -41,12 +43,14 @@
           <div v-show="showStatus[srItem.SR]" v-for="taskItem in objectToArray(srItem.taskGroups)"
             :key="taskItem.taskId" class="mt-3 mb-5 mx-3">
             <div
-              class="bg-blue-100 px-4 py-2 rounded-t-md border-l-4 border-blue-500 flex justify-between items-center">
-              <h5 class="font-medium text-blue-800">任務ID: {{ taskItem.taskId }}</h5>
+              class="bg-[#aad1ff] px-4 py-2 rounded-t-md border-l-4 border-blue-500 flex justify-between items-center">
+              <h5 class="font-medium text-blue-800">任務ID: {{ taskItem.taskId + taskItem.taskname }}</h5>
               <div class="flex items-center gap-3">
                 <span class="text-sm font-medium text-blue-800">總時間: {{ taskItem.totalTime }} h</span>
-                <button @click="showSR(taskItem.taskId)">{{ !showStatus[taskItem.taskId] ?
-                  "展開" : "關閉" }}</button>
+                <ChevronDownIcon class="size-6 text-black" v-if="!showStatus[taskItem.taskId]"
+                  @click="showSR(taskItem.taskId)">
+                </ChevronDownIcon>
+                <ChevronUpIcon class="size-6 text-black" v-else @click="showSR(taskItem.taskId)"></ChevronUpIcon>
               </div>
             </div>
 
@@ -80,7 +84,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-
+import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/vue/24/solid';
 // 數據狀態
 const timeData = ref(null);
 const isLoading = ref(true);
@@ -103,6 +107,7 @@ const fetchTimeReport = async () => {
       throw new Error('伺服器回應錯誤: ' + response.status);
     }
     timeData.value = await response.json();
+    getTaskName();
   } catch (err) {
     error.value = '獲取資料失敗: ' + err.message;
     console.error(err);
@@ -110,6 +115,22 @@ const fetchTimeReport = async () => {
     isLoading.value = false;
   }
 };
+
+const getTaskName = async () => {
+  try {
+    const response = await fetch('/api/update-tasks', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    const data = await response.json();
+    console.log(data);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 
 // 生命週期鉤子
 onMounted(() => {

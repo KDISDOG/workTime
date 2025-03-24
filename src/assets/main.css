@@ -4,7 +4,7 @@ html{
 }
 #app {
   width: 100vw;
-  height: 100vh;
+  height: 100%;
   padding: 0;
   margin: 0;
   color: aliceblue;
@@ -20,9 +20,6 @@ button{
 ::-webkit-scrollbar{
   height: 4px;
   width: 8px;
-}
-::-webkit-scrollbar-track {
-  background-color: #696969;
 }
 ::-webkit-scrollbar-thumb{
   border-radius: 10px;

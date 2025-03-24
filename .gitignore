@@ -12,6 +12,9 @@ node_modules
 dist
 dist-ssr
 coverage
+.db
+.env
+.sqlite
 *.local
 
 /cypress/videos/
@@ -28,3 +31,5 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+*.sqlite
+server/database.sqlite

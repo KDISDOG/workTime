@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import WorkTimeAnalyze from '@/views/WorkTimeAnalyze.vue'
 import WorkTimeCopy from '@/views/WorkTimeCopy.vue'
+import TokenInput from '@/views/TokenInput.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -15,10 +16,15 @@ const router = createRouter({
       name: 'analyze',
       component: WorkTimeAnalyze,
     },
-        {
+    {
       path: '/Copy',
       name: 'copy',
       component: WorkTimeCopy,
+    },
+    {
+      path: '/Token',
+      name: 'token',
+      component: TokenInput,
     },
     // {
     //   path: '/about',
