@@ -34,7 +34,7 @@
                     <tr class="w-full text-center px-2 h-12 border border-gray-600"
                         v-for="(item, index) in workTimeData" :key="item.id"
                         :class="{ 'bg-gray-900': index % 2 == 0, '!bg-[#4c5159]': selectedId === item.id }">
-                        <td class="px-2">
+                        <td class="px-2" :class="{ '!bg-[#925c34]': selectedId === item.id }">
                             <span v-if="!editItem[item.id]">{{ item.date }}</span>
                             <input class="!p-1 w-32" v-model="editItem[item.id].date" v-else type="date">
                         </td>
