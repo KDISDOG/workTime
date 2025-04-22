@@ -181,6 +181,16 @@ const handleCopy = async (item) => {
 
     try {
         await navigator.clipboard.writeText(`${item.taskId},${item.role}\n${item.detail}`);
+        localStorage.setItem('workTimeList',
+            JSON.stringify({
+                date: item.date,
+                time: item.time,
+                pyrd: item.pyrd,
+                SR: item.SR,
+                workitem: item.workitem,
+                detail: `${item.taskId},${item.role}\n${item.detail}`
+            })
+        );
         selectedId.value = item.id;
         toolTipState.value = true;
         showState.value++;
