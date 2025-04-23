@@ -13,9 +13,9 @@
       <label for="date">日期:</label>
       <input type="date" name="date" v-model="formData.date" placeholder="時間">
       <label for="PYRD">PYRD:</label>
-      <input type="text" name="PYRD" v-model="formData.pyrd" placeholder="4碼">
+      <input type="text" name="PYRD" v-model.trim="formData.pyrd" placeholder="4碼">
       <label for="taskId">taskId:</label>
-      <input type="text" name="taskId" v-model="formData.taskId" placeholder="taskId">
+      <input type="text" name="taskId" v-model.trim="formData.taskId" placeholder="taskId">
       <label for="workItem">workItem:</label>
       <select name="workItem" v-model="formData.workitem">
         <option value="a.需求發起">需求發起</option>
@@ -32,7 +32,7 @@
         <option value="部門會議(Department meeting)">部門會議</option>
       </select>
       <label for="time">工時:</label>
-      <input type="number" name="time" v-model="formData.time" placeholder="工時">
+      <input type="number" name="time" v-model.number="formData.time" placeholder="工時">
       <label for="time">細項:</label>
       <textarea type="text" name="time" @keydown="getNewLine" v-model="formData.detail" placeholder="1.XXXX"></textarea>
     </form>
@@ -50,6 +50,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import ToolTips from '../components/ToolTips.vue';
+import axios from 'axios';
 defineOptions({ name: 'home' })
 const toolTipState = ref(false)
 const toolTipText = ref('')
@@ -85,7 +86,7 @@ const getNewLine = (e) => {
 
 
 
-const handleRecord = () => {
+const handleRecord = async () => {
   if (formData.taskId === '') {
     toolTipState.value = false;
     showState.value++;
@@ -96,22 +97,14 @@ const handleRecord = () => {
   if (formData.taskId.includes('#')) {
     formData.taskId = formData.taskId.split('#')[1];
   }
-  isLoading.value = true;
-  fetch('../api/workTime', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(formData)
-  })
-    .then(res => {
-      if (res.status == 401) {
-        console.log(res);
-        throw new Error('請先設定 Clickup Token 或問 Sam')
+  try {
+    isLoading.value = true;
+    const res = await axios.post('../api/workTime', formData, {
+      headers: {
+        'Content-Type': 'application/json'
       }
-      return res.json()
-    })
-    .then(data => {
+    });
+    if (res.status == 200) {
       isLoading.value = false;
       toolTipState.value = true;
       showState.value++;
@@ -121,13 +114,14 @@ const handleRecord = () => {
       formData.time = '';
       formData.taskId = '';
       formData.detail = '1.';
-    })
-    .catch(err => {
-      isLoading.value = false;
-      toolTipState.value = false;
-      showState.value++;
-      toolTipText.value = err.message;
-    })
+    }
+  } catch (err) {
+    isLoading.value = false;
+    toolTipState.value = false;
+    showState.value++;
+    toolTipText.value = err.response.data.message;
+  }
+
 }
 
 const handleClear = () => {
@@ -145,8 +139,8 @@ const getNextHolidaty = async () => {
 
   try {
     // 使用 fetch 獲取行事曆資料
-    const response = await fetch(apiUrl);
-    const calendarData = await response.json();
+    const response = await axios(apiUrl);
+    const calendarData = response.data;
 
     // 找到下一個放假日
     let nextHoliday = null;

@@ -229,7 +229,7 @@ app.post("/api/worktime", async(req, res) => {
 app.get("/api/getWorkTimeList", (req, res) => {
     console.log("收到 getWorkTimeList 請求");
     
-    const data = db.prepare("SELECT * FROM WorkTime Where date >= date('now', '-2 month') ORDER BY date DESC").all();
+    const data = db.prepare("SELECT * FROM WorkTime WHERE date >= date('now', '-2 month') ORDER BY date DESC, id DESC").all();
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.setHeader('Expires', '-1');
     res.json(data);
