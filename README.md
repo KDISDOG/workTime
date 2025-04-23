@@ -27,6 +27,8 @@
 
 ## 第一步 在 cmd 進入資料夾輸入(有安裝 node.js，沒安裝自己 Google)
 
+### node.js 下載 v18.20.8 https://nodejs.org/zh-tw/download
+
 `cd 資料夾`
 `npm i`
 
