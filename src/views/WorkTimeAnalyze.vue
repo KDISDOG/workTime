@@ -16,7 +16,7 @@
     <!-- PYRD層級 -->
     <div v-else class="space-y-10">
       <div v-for="pyrdItem in pyrdList" :key="pyrdItem.pyrd"
-        class="space-y-6 bg-white shadow-lg rounded-lg overflow-hidden">
+        class="space-y-6 bg-[#8fa7cc] shadow-lg rounded-lg overflow-hidden">
         <div class="bg-gray-900 text-white px-6 py-4">
           <h3 class="text-xl font-bold flex justify-between items-center">
             <span>PYRD: {{ pyrdItem.pyrd || '無' }}</span>
@@ -29,7 +29,7 @@
         <!-- SR層級 -->
         <div v-show="showStatus[pyrdItem.pyrd]" v-for="srItem in objectToArray(pyrdItem.srGroups)" :key="srItem.SR"
           class="mx-4 mb-6 bg-gray-50 rounded-md overflow-hidden shadow">
-          <div class="bg-[#102a6f] text-white px-5 py-4 flex justify-between items-center">
+          <div class="bg-[#303b58] text-white px-5 py-5 flex justify-between items-center">
             <h4 class="font-semibold">SR: {{ srItem.SR }}</h4>
             <div class="flex items-center gap-3">
               <span class="bg-blue-500 px-2 py-0.5 rounded text-sm">總時間: {{ srItem.totalTime }} h</span>
@@ -43,10 +43,10 @@
           <div v-show="showStatus[srItem.SR]" v-for="taskItem in objectToArray(srItem.taskGroups)"
             :key="taskItem.taskId" class="mt-3 mb-5 mx-3">
             <div
-              class="bg-[#aad1ff] px-4 py-2 rounded-t-md border-l-4 border-blue-500 flex justify-between items-center">
-              <h5 class="font-medium text-blue-800">任務ID: {{ taskItem.taskId + taskItem.taskname }}</h5>
+              class="bg-[#afc4dc] px-4 py-2 rounded-t-md border-l-4 border-[#8ba1cb] flex justify-between items-center">
+              <h5 class="font-bold text-[#505887]">任務ID: {{ taskItem.taskId + taskItem.taskname }}</h5>
               <div class="flex items-center gap-3">
-                <span class="text-sm font-medium text-blue-800">總時間: {{ taskItem.totalTime }} h</span>
+                <span class="text-sm font-bold text-[#505887]">總時間: {{ taskItem.totalTime }} h</span>
                 <ChevronDownIcon class="size-6 text-black" v-if="!showStatus[taskItem.taskId]"
                   @click="showSR(taskItem.taskId)">
                 </ChevronDownIcon>

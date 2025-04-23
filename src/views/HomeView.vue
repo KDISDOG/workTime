@@ -18,18 +18,18 @@
       <input type="text" name="taskId" v-model="formData.taskId" placeholder="taskId">
       <label for="workItem">workItem:</label>
       <select name="workItem" v-model="formData.workitem">
-        <option value="需求發起">a.需求發起</option>
-        <option value="系統架構設計">b.系統架構設計</option>
-        <option value="系統開發">c.系統開發</option>
-        <option value="系統測試驗證">d.系統測試驗證</option>
-        <option value="產品發佈">e.產品發佈</option>
-        <option value="產品行銷">f.產品行銷</option>
-        <option value="產品審查">g.產品審查</option>
-        <option value="Other">h.Other</option>
-        <option value="技術研究">技術研究</option>
-        <option value="教育訓練">教育訓練</option>
-        <option value="行政作業">行政作業</option>
-        <option value="部門會議">部門會議</option>
+        <option value="a.需求發起">需求發起</option>
+        <option value="b.系統架構設計">系統架構設計</option>
+        <option value="c.系統開發">系統開發</option>
+        <option value="d.系統測試驗證 (例如 : Debug、公司內部測試、佈署驗證、…)">系統測試驗證</option>
+        <option value="e.產品發佈">產品發佈</option>
+        <option value="f.產品行銷">產品行銷</option>
+        <option value="g.產品審查">產品審查</option>
+        <option value="h.Other (例如: 支援軟體部、…)">Other</option>
+        <option value="技術研究(Technology research)">技術研究</option>
+        <option value="教育訓練(Education Training)">教育訓練</option>
+        <option value="行政作業(Administrative work)">行政作業</option>
+        <option value="部門會議(Department meeting)">部門會議</option>
       </select>
       <label for="time">工時:</label>
       <input type="number" name="time" v-model="formData.time" placeholder="工時">
@@ -50,7 +50,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import ToolTips from '../components/ToolTips.vue';
-
+defineOptions({ name: 'home' })
 const toolTipState = ref(false)
 const toolTipText = ref('')
 const showState = ref(0);
@@ -68,7 +68,7 @@ const defaultData = {
   date: formattedDate,
   pyrd: '',
   taskId: '',
-  workitem: '系統開發',
+  workitem: 'c.系統開發',
   time: '',
   detail: `1.`
 }

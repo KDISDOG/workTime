@@ -24,7 +24,12 @@ const router = useRoute()
       </RouterLink>
     </nav>
   </header>
-  <RouterView />
+  <router-view v-slot="{ Component }">
+    <KeepAlive include="home">
+      <component :is="Component" />
+    </KeepAlive>
+  </router-view>
+
 
 
 </template>

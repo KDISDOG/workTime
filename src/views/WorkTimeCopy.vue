@@ -11,7 +11,7 @@
         </div>
     </Teleport>
     <div class="flex flex-col items-center justify-center gap-6 px-4 py-6">
-        <h1 class=" text-2xl font-bold text-center">工時複製 (1個月內)</h1>
+        <h1 class=" text-2xl font-bold text-center">工時複製 (2個月內)</h1>
         <div class="overflow-y-auto h-[70vh]">
             <table class="table-auto w-[85vw]">
                 <thead class="sticky top-0">
@@ -34,16 +34,16 @@
                     <tr class="w-full text-center px-2 h-12 border border-gray-600"
                         v-for="(item, index) in workTimeData" :key="item.id"
                         :class="{ 'bg-gray-900': index % 2 == 0, '!bg-[#4c5159]': selectedId === item.id }">
-                        <td class="px-2" :class="{ '!bg-[#925c34]': selectedId === item.id }">
+                        <td class="px-2">
                             <span v-if="!editItem[item.id]">{{ item.date }}</span>
                             <input class="!p-1 w-32" v-model="editItem[item.id].date" v-else type="date">
                         </td>
-                        <td class="px-2" :class="{ '!bg-[#925c34]': selectedId === item.id }">
+                        <td class="px-2">
                             <span v-if="!editItem[item.id]">{{
                                 item.pyrd }}</span>
                             <input class="!p-1 w-12" v-model="editItem[item.id].pyrd" v-else type="text">
                         </td>
-                        <td class="px-2" :class="{ '!bg-[#925c34]': selectedId === item.id }">
+                        <td class="px-2">
                             <span v-if="!editItem[item.id]">{{
                                 item.SR }}</span>
                             <input class="!p-1 w-12" v-model="editItem[item.id].SR" v-else type="text">
@@ -56,22 +56,22 @@
                             <span v-if="!editItem[item.id]">{{ item.taskId }}</span>
                             <input class="!p-1 w-24" v-model="editItem[item.id].taskId" v-else type="text">
                         </td>
-                        <td class="px-2" :class="{ '!bg-[#925c34]': selectedId === item.id }">
+                        <td class="px-2">
                             <span v-if="!editItem[item.id]">{{
                                 item.workitem }}</span>
                             <select class="!p-1 w-32" v-model="editItem[item.id].workitem" v-else>
-                                <option value="需求發起">需求發起</option>
-                                <option value="系統架構設計">系統架構設計</option>
-                                <option value="系統開發">系統開發</option>
-                                <option value="系統測試驗證">系統測試驗證</option>
-                                <option value="產品發佈">產品發佈</option>
-                                <option value="產品行銷">產品行銷</option>
-                                <option value="產品審查">產品審查</option>
-                                <option value="Other">Other</option>
-                                <option value="技術研究">技術研究</option>
-                                <option value="教育訓練">教育訓練</option>
-                                <option value="行政作業">行政作業</option>
-                                <option value="部門會議">部門會議</option>
+                                <option value="a.需求發起">需求發起</option>
+                                <option value="b.系統架構設計">系統架構設計</option>
+                                <option value="c.系統開發">系統開發</option>
+                                <option value="d.系統測試驗證 (例如 : Debug、公司內部測試、佈署驗證、…)">系統測試驗證</option>
+                                <option value="e.產品發佈">產品發佈</option>
+                                <option value="f.產品行銷">產品行銷</option>
+                                <option value="g.產品審查">產品審查</option>
+                                <option value="h.Other (例如: 支援軟體部、…)">Other</option>
+                                <option value="技術研究(Technology research)">技術研究</option>
+                                <option value="教育訓練(Education Training)">教育訓練</option>
+                                <option value="行政作業(Administrative work)">行政作業</option>
+                                <option value="部門會議(Department meeting)">部門會議</option>
                             </select>
                         </td>
                         <td class="px-2">
@@ -85,7 +85,7 @@
                                 <option value="UIUX">UIUX</option>
                             </select>
                         </td>
-                        <td class="px-2" :class="{ '!bg-[#925c34]': selectedId === item.id }">
+                        <td class="px-2">
                             <span v-if="!editItem[item.id]">{{
                                 item.time }}</span>
                             <input class="!p-1 w-12" v-model="editItem[item.id].time" v-else type="number">

@@ -1,25 +1,24 @@
 {
-    "manifest_version": 3,
-    "name": "WorkTime Injector",
-    "version": "1.1",
-    "permissions": ["storage", "scripting", "activeTab"],
-    "host_permissions": [
-    "http://localhost:*/*",
-    "https://b.com/*"
-    ],
-    "background": {
-      "service_worker": "background.js"
-    },
-    "action": {
-      "default_popup": "popup.html",
-      "default_icon": "51121.png"
-    },
-    "content_scripts": [
-      {
-        "matches": ["http://localhost:*/*"],
-        "js": ["content-scraper.js"],
-        "run_at": "document_idle"
-      }
-    ]
-  }
-  
+  "manifest_version": 3,
+  "name": "WorkTime Injector",
+  "version": "1.1",
+  "permissions": ["storage", "scripting", "activeTab"],
+  "host_permissions": [
+  "http://localhost:*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "51121.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost:*/*"],
+      "js": ["content-scraper.js"],
+      "run_at": "document_idle"
+    }
+    
+  ]
+}

@@ -1,5 +1,13 @@
 # 版本更新
 
+## 20250423
+
+1. 新增工時輸入 KeepAlive
+2. 設置 chrome 小工具的 DOM
+3. 移除 工時複製時需要填寫的欄位 highlight
+4. workItem 改跟 BPM 一樣
+5. 修改工時分析顏色
+
 ## 20250422
 
 1. 新增 chrome 自動填入小工具(未設置 DOM)
@@ -19,29 +27,37 @@
 
 ## 第一步 在 cmd 進入資料夾輸入(有安裝 node.js，沒安裝自己 Google)
 
-cd XXXXX
-npm i
+`cd 資料夾`
+`npm i`
 
 ## 第二步 進入 server 資料夾
 
-cd server
+`cd server`
 
 ## 第三步 安裝 pm2
 
-npm install -g pm2
+`npm install -g pm2`
 
 ## 第四步 架設 server
 
-pm2 start server.js --name "my-app"
+`pm2 start server.js --name "my-app"`
 
 ## 第五步 存檔
 
-pm2 save
+`pm2 save`
 
 ## 第六步 安裝開機自動啟動工具
 
-npm install -g pm2-windows-startup
+`npm install -g pm2-windows-startup`
 
 ## 第七步 開啟工具
 
-pm2-startup install
+`pm2-startup install`
+
+## 第八步 新增 chrome 小工具
+
+### 打開 chrome 擴充功能 > 管理擴充功能
+
+### 點擊載入未封裝項目
+
+### 選擇 extension 資料夾
