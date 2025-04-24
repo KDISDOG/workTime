@@ -1,5 +1,11 @@
 # 版本更新
 
+## 20250424
+
+1. 紀錄畫面版面修正
+2. 複製畫面版面修正
+3. 修正其他 PM 抓不到 SR ˋˊ
+
 ## 20250423
 
 1. 新增工時輸入 KeepAlive
@@ -27,12 +33,13 @@
 
 # 安裝步驟
 
-## 第一步 在 cmd 進入資料夾輸入(有安裝 node.js，沒安裝自己 Google)
+## 第一步 在 cmd 或終端機 進入資料夾輸入(有安裝 node.js，沒安裝自己 Google)
 
 ### node.js 下載 v18.20.8 https://nodejs.org/zh-tw/download
 
-`cd 資料夾`
-`npm i`
+`cd 資料夾`<br>
+`npm i`<br>
+`npm run build`<br>
 
 ## 第二步 進入 server 資料夾
 

@@ -1,7 +1,7 @@
 <template>
   <ToolTips :showState="showState" :state="toolTipState" :content="toolTipText"></ToolTips>
   <!-- 載入指示器 -->
-  <div v-show="isLoading" class="mask absolute top-0 left-0 w-full h-full bg-gray-900 opacity-50"></div>
+  <div v-show="isLoading" class="mask fixed top-0 left-0 w-full h-full bg-gray-900 opacity-50"></div>
   <div v-show="isLoading"
     class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col justify-center items-center h-40">
     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>

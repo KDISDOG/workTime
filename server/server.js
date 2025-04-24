@@ -205,14 +205,20 @@ app.post("/api/worktime", async(req, res) => {
       taskname = listData.name;
       console.log("taskname",taskname);
       const foundField = listData.custom_fields.find(field => field.name === 'SR');
-      if (foundField?.value) {
-        const currSRId = foundField.value[0];
+      console.log(foundField);
+      // 是 array 就是要找ID 
+      if (Array.isArray(foundField?.value)) {
+        
+        const currSRId =  foundField.value[0] 
+        console.log("currSRId",currSRId);
         // 抓末三碼
         SR = foundField.type_config.options.find(option => option.id === currSRId).label.slice(-3);
-        console.log("SR",SR);
+      //不是的話直接value 就是SR
+      } else if(foundField?.value){
+        SR = foundField.value.slice(-3);
       }
     }
-    
+    console.log("SR",SR);
     const { date, taskId, pyrd, workitem, time, detail } = projects[0];
     console.log(projects[0]);
     insertStmt.run(date , SR, role, taskId, pyrd, workitem, time, detail, taskname);
@@ -222,7 +228,8 @@ app.post("/api/worktime", async(req, res) => {
     res.status(200).json({ message: "更新成功" });
 
   } catch (error) {
-
+    console.error("發生錯誤:", error);
+    res.status(500).json({ message: "更新資料時發生錯誤" });
   }
 });
 // 獲取所有資料
