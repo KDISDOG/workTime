@@ -22,7 +22,8 @@ db.exec(`
       workitem TEXT, 
       time REAL,
       detail TEXT,
-      taskname TEXT
+      taskname TEXT,
+      limitTime REAL
   );
 `);
 // 新增 Tokens 資料表

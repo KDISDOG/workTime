@@ -115,6 +115,7 @@ const callClickupToken = () => {
   const stmt  = db.prepare('SELECT token FROM Tokens WHERE id = 1');
   return stmt.get()?.token ||"";
 }
+// fetchAllUniqueTaskLimitTimes();
 app.get("/api/update-tasks", async (req, res) => {
   const token = callClickupToken();
   if( !token ) { 
@@ -183,18 +184,19 @@ app.post("/api/worktime", async(req, res) => {
     const projects = Array.isArray(data) ? data : [data]; // 確保是陣列
     // 準備 SQL 語句
     const insertStmt = db.prepare(
-      "INSERT INTO WorkTime (date, SR, role, taskId, pyrd, workitem, time ,detail, taskname) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)"
+      "INSERT INTO WorkTime (date, SR, role, taskId, pyrd, workitem, time ,detail, taskname, limitTime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     // 取得 Task 詳細資訊
     const taskRes = await fetch(`https://api.clickup.com/api/v2/task/${projects[0].taskId}`, { headers });
     console.log("taskId",projects[0].taskId);
     const taskData = await taskRes.json();
-    console.log(taskData);
     if(taskRes.status == 401){
       res.status(401).json({ message: "找查不到對應 taskId or 設定錯誤 token" });
       return;
     }
-    let role ,taskname,SR;
+    let role , taskname, SR, limitTime;
+    limitTime = taskData.time_estimate/3600000; // 轉換為小時
+    console.log("limitTime",limitTime);
     role = taskData.name;
     console.log("role",role);
     if(taskData.parent){
@@ -203,26 +205,30 @@ app.post("/api/worktime", async(req, res) => {
       const listRes = await fetch(`https://api.clickup.com/api/v2/task/${listId}`, { headers });
       const listData = await listRes.json();
       taskname = listData.name;
-      console.log("taskname",taskname);
-      const foundField = listData.custom_fields.find(field => field.name === 'SR');
-      console.log(foundField);
-      // 是 array 就是要找ID 
-      if (Array.isArray(foundField?.value)) {
-        
-        const currSRId =  foundField.value[0] 
-        console.log("currSRId",currSRId);
-        // 抓末三碼
-        SR = foundField.type_config.options.find(option => option.id === currSRId).label.slice(-3);
-      //不是的話直接value 就是SR
-      } else if(foundField?.value){
-        SR = foundField.value.slice(-3);
+      const foundField = listData.custom_fields.filter(field => field.name === 'SR');
+      for (const field of foundField) {
+        const fieldData = field.type_config?.options?.find(option => option.id === field.value[0]);
+        if(fieldData && field.type_config?.options?.length > 0) {
+          // 如果是 object 就是要找 label
+          console.log("1");
+          SR = fieldData.label.slice(-3);
+          if(SR)break; // 找到後就跳出迴圈
+        }
+        if(Array.isArray(field?.value) && field.value[0]) {
+          console.log("2");
+          SR =  field.value[0].slice(-3);
+          if(SR)break; // 找到後就跳出迴圈
+        }
+        if(typeof field?.value === 'string') {
+          console.log("3");
+          SR = field.value.slice(-3);
+          if(SR)break; // 找到後就跳出迴圈
+        }
       }
     }
     console.log("SR",SR);
     const { date, taskId, pyrd, workitem, time, detail } = projects[0];
-    console.log(projects[0]);
-    insertStmt.run(date , SR, role, taskId, pyrd, workitem, time, detail, taskname);
-    
+    insertStmt.run(date , SR, role, taskId, pyrd, workitem, time, detail, taskname, limitTime);
 
 
     res.status(200).json({ message: "更新成功" });
@@ -287,7 +293,7 @@ app.get("/api/timeReport", (req, res) => {
   try {
     // 從資料庫獲取工時資料
     const rows = db.prepare(`
-      SELECT id, date, SR, pyrd, taskId, role, workitem, time ,taskname
+      SELECT id, date, SR, pyrd, taskId, role, workitem, time ,taskname, limitTime
       FROM WorkTime
       ORDER BY pyrd, SR, taskId
     `).all();
@@ -327,6 +333,7 @@ app.get("/api/timeReport", (req, res) => {
           taskId: row.taskId,
           taskname: row.taskname,
           totalTime: 0,
+          limitTime: row.limitTime,
           records: []
         };
       }
@@ -361,3 +368,31 @@ app.get("*", (req, res) => {
 app.listen(port, 0.0,0.0, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
+
+// 依據資料庫所有唯一 taskId 撈取 limitTime，回傳 { taskId: limitTime }
+async function fetchAllUniqueTaskLimitTimes() {
+  // 從資料庫撈所有唯一 taskId
+  const token = callClickupToken();
+  const rows = db.prepare('SELECT DISTINCT taskId FROM WorkTime').all();
+  const uniqueTaskIds = rows.map(row => row.taskId);
+  const headers = { Authorization: token };
+  const result = {};
+  for (const taskId of uniqueTaskIds) {
+    try {
+      const taskRes = await fetch(`https://api.clickup.com/api/v2/task/${taskId}`, { headers });
+      if (!taskRes.ok) {
+        result[taskId] = null;
+        continue;
+      }
+      const taskData = await taskRes.json();
+      result[taskId] = taskData.time_estimate ? taskData.time_estimate / 3600000 : null;
+    } catch (err) {
+      result[taskId] = null;
+    }
+  }
+  // 將撈到的 limitTime 更新回資料庫
+  const updateStmt = db.prepare('UPDATE WorkTime SET limitTime = ? WHERE taskId = ?');
+  for (const [taskId, limitTime] of Object.entries(result)) {
+    updateStmt.run(limitTime, taskId);
+  }
+}

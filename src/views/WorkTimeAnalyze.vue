@@ -46,6 +46,8 @@
               class="bg-[#afc4dc] px-4 py-2 rounded-t-md border-l-4 border-[#8ba1cb] flex justify-between items-center">
               <h5 class="font-bold text-[#505887]">任務ID: {{ taskItem.taskId + taskItem.taskname }}</h5>
               <div class="flex items-center gap-3">
+                <span class="text-sm font-bold text-[#505887]">預估工時: {{ taskItem.limitTime ? taskItem.limitTime + 'h'
+                  : '沒資料' }}</span>
                 <span class="text-sm font-bold text-[#505887]">總時間: {{ taskItem.totalTime }} h</span>
                 <ChevronDownIcon class="size-6 text-black" v-if="!showStatus[taskItem.taskId]"
                   @click="showSR(taskItem.taskId)">
