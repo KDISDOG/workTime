@@ -45,10 +45,15 @@
             <div
               class="bg-[#afc4dc] px-4 py-2 rounded-t-md border-l-4 border-[#8ba1cb] flex justify-between items-center">
               <h5 class="font-bold text-[#505887]">任務ID: {{ taskItem.taskId + taskItem.taskname }}</h5>
-              <div class="flex items-center gap-3">
-                <span class="text-sm font-bold text-[#505887]">預估工時: {{ taskItem.limitTime ? taskItem.limitTime + 'h'
-                  : '沒資料' }}</span>
-                <span class="text-sm font-bold text-[#505887]">總時間: {{ taskItem.totalTime }} h</span>
+              <div class="flex items-center gap-3 min-w-[400px]">
+                <span class="flex-1 text-nowrap text-sm font-bold text-[#68748d]">最低工時: {{ isOverdue(taskItem.limitTime)
+                  || '沒資料'
+                }}</span>
+                <span class="flex-1 text-nowrap text-sm font-extrabold text-[#505887]">目前工時: {{ taskItem.totalTime ||
+                  '沒資料'
+                }}</span>
+                <span class="flex-1 text-nowrap text-sm font-bold text-[#ad6666]">限制工時: {{ taskItem.limitTime || '沒資料'
+                }}</span>
                 <ChevronDownIcon class="size-6 text-black" v-if="!showStatus[taskItem.taskId]"
                   @click="showSR(taskItem.taskId)">
                 </ChevronDownIcon>
@@ -97,6 +102,35 @@ const pyrdList = computed(() => {
   if (!timeData.value || !timeData.value.hierarchyData) return [];
   return Object.values(timeData.value.hierarchyData);
 });
+
+// 計算差幾小就紅標
+const isOverdue = (limitTime) => {
+  const rate = limitTimeRule(limitTime);
+  return (limitTime / rate).toFixed(1);
+};
+
+// 倍率規則
+const limitTimeRule = (time) => {
+  if (time <= 8) {
+    return 4;
+  }
+  if (time > 8 && time <= 24) {
+    return 3.5;
+  }
+  if (time > 24 && time <= 40) {
+    return 3;
+  }
+  if (time > 40 && time <= 120) {
+    return 2;
+  }
+  if (time > 120 && time <= 240) {
+    return 1.75;
+  }
+  if (time > 240) {
+    return 1.5;
+  }
+}
+
 const showSR = (key) => {
   showStatus.value[key] = !showStatus.value[key];
 };
