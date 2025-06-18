@@ -138,12 +138,11 @@ const showSR = (key) => {
 const fetchTimeReport = async () => {
   try {
     isLoading.value = true;
-    const response = await fetch('/api/timeReport');
+    const response = await fetch('/api/worktime/timeReport');
     if (!response.ok) {
       throw new Error('伺服器回應錯誤: ' + response.status);
     }
     timeData.value = await response.json();
-    getTaskName();
   } catch (err) {
     error.value = '獲取資料失敗: ' + err.message;
     console.error(err);
@@ -152,20 +151,7 @@ const fetchTimeReport = async () => {
   }
 };
 
-const getTaskName = async () => {
-  try {
-    const response = await fetch('/api/update-tasks', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    const data = await response.json();
-    console.log(data);
-  } catch (err) {
-    console.error(err);
-  }
-}
+
 
 
 // 生命週期鉤子

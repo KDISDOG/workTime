@@ -99,7 +99,7 @@ const handleRecord = async () => {
   }
   try {
     isLoading.value = true;
-    const res = await axios.post('../api/workTime', formData, {
+    const res = await axios.post('../api/worktime/worktime', formData, {
       headers: {
         'Content-Type': 'application/json'
       }

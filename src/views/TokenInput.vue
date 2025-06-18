@@ -15,7 +15,7 @@ const toolTipText = ref('');
 const showState = ref(0);
 const token = ref('');
 const handleRecord = async () => {
-    await fetch('/api/saveToken', {
+    await fetch('/api/token/saveToken', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -39,7 +39,7 @@ const handleRecord = async () => {
 }
 
 const getToken = async () => {
-    await fetch('/api/getToken', {
+    await fetch('/api/token/getToken', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'

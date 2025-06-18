@@ -132,7 +132,7 @@ const pointerItem = ref(null);
 const selectedId = ref(null);
 const editItem = ref([]);
 const getWorkTimeList = () => {
-    fetch('/api/getWorkTimeList', {
+    fetch('/api/worktime/getWorkTimeList', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -146,7 +146,7 @@ const getWorkTimeList = () => {
 }
 const handleDelete = () => {
 
-    fetch('/api/deleteList', {
+    fetch('/api/worktime/deleteList', {
         method: 'Delete',
         headers: {
             'Content-Type': 'application/json'
@@ -219,7 +219,7 @@ const cancelEdit = (item) => {
 const saveEdit = () => {
     const cleanData = Object.values(editItem.value).filter(item => item !== undefined && item !== null);
     console.log(cleanData);
-    fetch('/api/updateWorkTime', {
+    fetch('/api/worktime/updateWorkTime', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cleanData)
@@ -238,25 +238,9 @@ const saveEdit = () => {
             }
         })
 }
-// 撈名稱
-const getTaskName = async () => {
-    try {
-        const response = await fetch('/api/update-tasks', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        const data = await response.json();
-        console.log(data);
-    } catch (err) {
-        console.error(err);
-    }
-}
 
 onMounted(() => {
     getWorkTimeList();
-    getTaskName();
 })
 
 
