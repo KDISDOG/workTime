@@ -1,0 +1,224 @@
+import puppeteer from "puppeteer";
+const handleRequest = async (req, res) => {
+    const { data } = req.body;
+    try {
+        const result = await runCrawler(data);
+        res.json({ success: true, data: result });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
+const runCrawler = async (data = [{}, {}, {}]) => {
+    console.log("啟動爬蟲...");
+    const browser = await puppeteer.launch({
+        headless: false,
+        defaultViewport: null,
+        args: ["--start-maximized"],
+    });
+    const page = await browser.newPage();
+    await page.goto(
+        "https://efgp.yuchens.com:8086/NaNaWeb/GP/ForwardIndex?hdnMethod=findIndexForward"
+    );
+    await handleLogin(page);
+    for (const el of data) {
+        await goToApplicationForm(page);
+        await handleDataInjection(page, el);
+    }
+};
+
+// 處理登入
+const handleLogin = async (page) => {
+    console.log("處理登入...");
+    await page.type("#txtUserId", "samwei"); // 輸入帳號
+    await page.type("#txtUserPsd", "SAM900405"); // 輸入密碼
+    await page.click("#loginButton button"); // 點擊按鈕
+};
+
+// 進入工時申請單
+const goToApplicationForm = async (page) => {
+    await page.waitForSelector("#ifmNavigator");
+    console.log("前往工時申請表單...");
+    // 取得 iframe 元件對應的 frame 對象
+    const elementHandle = await page.$("#ifmNavigator");
+    const frame = await elementHandle.contentFrame();
+    if (!frame) {
+        throw new Error("Navigator iframe not found or not loaded.");
+    }
+    await frame.waitForSelector("#icon_menu_InvokeProcessModule", {
+        visible: true,
+        timeout: 5000,
+    });
+    await frame.evaluate(() => gotoNewURL("InvokeProcess", "發起流程"));
+
+    await page.waitForSelector("#ifmFucntionLocation");
+    const functionFrame = await page.$("#ifmFucntionLocation");
+    const functionContentFrame = await functionFrame.contentFrame();
+    await functionContentFrame.waitForSelector(
+        ".processCategory[data-process-category='9df75040e41910048cdea4cc20f29288']"
+    );
+    await functionContentFrame.click(
+        ".processCategory[data-process-category='9df75040e41910048cdea4cc20f29288']"
+    );
+    await functionContentFrame.waitForSelector(
+        ".processPackage[data-process-name='工時申請單']"
+    );
+    await functionContentFrame.click(
+        ".processPackage[data-process-name='工時申請單']"
+    );
+};
+
+// 處理資料注入
+const handleDataInjection = async (page, data) => {
+    console.log("處理資料注入...");
+    await new Promise((res) => setTimeout(res, 2000));
+
+    // 抓第一層 iframe
+    const targetUrl =
+        "https://efgp.yuchens.com:8086/NaNaWeb/GP/WMS/PerformWorkItem/PerformRequesterActivity";
+    const frames = page.frames();
+    const functionContentFrame = frames.find((f) => f.url() === targetUrl);
+    if (!functionContentFrame)
+        throw new Error("找不到指定 url 的 functionContentFrame");
+
+    // 抓第二層 iframe
+    const innerIframe = await functionContentFrame.$("#ifmAppLocation");
+    const innerFrame = await innerIframe.contentFrame();
+    if (!innerFrame) throw new Error("innerFrame 為 null");
+
+    // 點擊SR
+    await innerFrame.waitForSelector("#ProjNoDiaglog_btn");
+    await innerFrame.evaluate(() => ProjNoDiaglog_openDataChooser());
+    await insertSr(page);
+    // 點擊workitem
+    await innerFrame.evaluate(() => WorkItem_openDataChooser());
+    await insertWorkItem(page);
+    // 其他值，直接給他value
+    await inputOtherValues(innerFrame);
+};
+
+// 插入 SR
+const insertSr = async (page, sr = "0730202400023") => {
+    // 等待新彈窗打開
+    const newPagePromise = new Promise((resolve) =>
+        page.browser().once("targetcreated", async (target) => {
+            if (
+                target.type() === "page" &&
+                target.url().includes("customDataChooser")
+            ) {
+                const newPage = await target.page();
+                await newPage.bringToFront();
+                resolve(newPage);
+            }
+        })
+    );
+    const popup = await newPagePromise;
+
+    // 等待彈窗加載完成
+    const chevronSelector = ".spenTools.pull-right a.fa.fa-chevron-down";
+    await popup.waitForSelector(chevronSelector, {
+        visible: true,
+    });
+    const chevronElement = await popup.$(chevronSelector);
+    if (chevronElement) {
+        // 確保元素可點擊
+        await popup.evaluate((el) => {
+            el.scrollIntoView({
+                behavior: "auto",
+                block: "center",
+                inline: "center",
+            });
+        }, chevronElement);
+        await chevronElement.click();
+    }
+    await popup.waitForSelector("#_cuzDataChooser_criteria_1");
+    console.log(sr);
+    await popup.type("#_cuzDataChooser_criteria_1", sr); // 輸入 SR
+
+    await new Promise((res) => setTimeout(res, 300));
+    // 點擊搜尋
+    await popup.waitForSelector("#_btnCustomDataChooser_query");
+    await popup.click("#_btnCustomDataChooser_query");
+
+    // 點擊目標
+    await waitForKeywordInElements(
+        popup,
+        "#divBpmList_pcTable tbody tr td",
+        sr
+    ).then((el) => el.click());
+};
+
+// 插入工作項目
+const insertWorkItem = async (page, workitem = "系統開發") => {
+    // 等待新彈窗打開
+    const newPagePromise = new Promise((resolve) =>
+        page.browser().once("targetcreated", async (target) => {
+            if (
+                target.type() === "page" &&
+                target.url().includes("customDataChooser")
+            ) {
+                const newPage = await target.page();
+                await newPage.bringToFront();
+                resolve(newPage);
+            }
+        })
+    );
+    const popup = await newPagePromise;
+
+    // 等待彈窗加載完成
+    await popup.waitForSelector("#divBpmList_pcTable tbody tr td");
+    // 找到內容為 workitem 的 td 並點擊其所在的 tr
+    await waitForKeywordInElements(
+        popup,
+        "#divBpmList_pcTable tbody tr td",
+        workitem
+    ).then((el) => el.click());
+};
+
+const inputOtherValues = async (frame, data) => {
+    console.log("輸入其他值...");
+    // 日期
+    await frame.waitForSelector("#WorkDate_txt");
+    await frame.evaluate(() => {
+        const input = document.querySelector("#WorkDate_txt");
+        input.value = "2023-10-01";
+    });
+    console.log("1");
+    // 工時
+    await frame.waitForSelector("#WorkHour");
+    await frame.type("#WorkHour", "8");
+    console.log("2");
+    // 描述
+    await frame.waitForSelector("#WorkDesc");
+    await frame.type("#WorkDesc", "工作描述");
+    console.log("3");
+};
+
+// 等待指定關鍵字出現在元素中
+const waitForKeywordInElements = async (
+    frame,
+    selector,
+    keyword,
+    timeout = 10000,
+    interval = 300
+) => {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+        const elements = await frame.$$(selector);
+        for (const el of elements) {
+            const text = await frame.evaluate((el) => el.textContent || "", el);
+            if (text.includes(keyword)) {
+                return el;
+            }
+        }
+        await new Promise((res) => setTimeout(res, interval));
+    }
+    throw new Error(
+        `Timeout: No element in "${selector}" contains keyword "${keyword}"`
+    );
+};
+
+runCrawler()
+    .then(() => console.log("done"))
+    .catch(console.error);
+export { handleRequest };
