@@ -1,7 +1,25 @@
 import puppeteer from "puppeteer";
+import { getDataByIds } from "./worktime";
 const handleRequest = async (req, res) => {
-    const { data } = req.body;
+    const { id } = req.body;
     try {
+        const data = getDataByIds(id);
+        // 檢查資料是否有效
+        if (
+            !data ||
+            !data.pyrd ||
+            !data.date ||
+            !data.time ||
+            !data.detail ||
+            !data.workitem ||
+            !data.taskId ||
+            !data.role
+        ) {
+            return res.status(400).json({
+                success: false,
+                error: "Invalid input data",
+            });
+        }
         const result = await runCrawler(data);
         res.json({ success: true, data: result });
     } catch (err) {
@@ -57,14 +75,14 @@ const goToApplicationForm = async (page) => {
     await functionContentFrame.waitForSelector(
         ".processCategory[data-process-category='9df75040e41910048cdea4cc20f29288']"
     );
-    await functionContentFrame.click(
-        ".processCategory[data-process-category='9df75040e41910048cdea4cc20f29288']"
+    await functionContentFrame.evaluate(() =>
+        toggleProcessCategoryCotainer("9df75040e41910048cdea4cc20f29288")
     );
     await functionContentFrame.waitForSelector(
         ".processPackage[data-process-name='工時申請單']"
     );
-    await functionContentFrame.click(
-        ".processPackage[data-process-name='工時申請單']"
+    await functionContentFrame.evaluate(() =>
+        prepareProcessData("a9c1ba73f4d410048553e100bf189988", "BPMN")
     );
 };
 
@@ -89,16 +107,19 @@ const handleDataInjection = async (page, data) => {
     // 點擊SR
     await innerFrame.waitForSelector("#ProjNoDiaglog_btn");
     await innerFrame.evaluate(() => ProjNoDiaglog_openDataChooser());
-    await insertSr(page);
+    await insertSr(page, data.pyrd, data.SR);
     // 點擊workitem
     await innerFrame.evaluate(() => WorkItem_openDataChooser());
-    await insertWorkItem(page);
+    await insertWorkItem(page, data.workitem);
     // 其他值，直接給他value
-    await inputOtherValues(innerFrame);
+    await inputOtherValues(innerFrame, data);
+
+    // 提交表單
+    // await functionContentFrame.evaluate(() => invokeProcessWithoutSave());
 };
 
 // 插入 SR
-const insertSr = async (page, sr = "0730202400023") => {
+const insertSr = async (page, pyrd, SR) => {
     // 等待新彈窗打開
     const newPagePromise = new Promise((resolve) =>
         page.browser().once("targetcreated", async (target) => {
@@ -132,20 +153,32 @@ const insertSr = async (page, sr = "0730202400023") => {
         await chevronElement.click();
     }
     await popup.waitForSelector("#_cuzDataChooser_criteria_1");
-    console.log(sr);
-    await popup.type("#_cuzDataChooser_criteria_1", sr); // 輸入 SR
-
-    await new Promise((res) => setTimeout(res, 300));
-    // 點擊搜尋
-    await popup.waitForSelector("#_btnCustomDataChooser_query");
-    await popup.click("#_btnCustomDataChooser_query");
-
-    // 點擊目標
-    await waitForKeywordInElements(
-        popup,
-        "#divBpmList_pcTable tbody tr td",
-        sr
-    ).then((el) => el.click());
+    if (SR) {
+        await popup.type("#_cuzDataChooser_criteria_1", SR); // 輸入 SR
+        await new Promise((res) => setTimeout(res, 300));
+        // 點擊搜尋
+        await popup.waitForSelector("#_btnCustomDataChooser_query");
+        await popup.click("#_btnCustomDataChooser_query");
+        // 點擊目標
+        await waitForKeywordInElements(
+            popup,
+            "#divBpmList_pcTable tbody tr td",
+            SR
+        ).then((el) => el.click());
+    } else {
+        await popup.type("#_cuzDataChooser_criteria_0", pyrd); // 輸入 pyrd
+        await new Promise((res) => setTimeout(res, 300));
+        // 點擊搜尋
+        await popup.waitForSelector("#_btnCustomDataChooser_query");
+        await popup.click("#_btnCustomDataChooser_query");
+        // 點擊第一個目標
+        const elements = await popup.$$("#divBpmList_pcTable tbody tr td");
+        if (elements.length > 0) {
+            await elements[0].click();
+        } else {
+            throw new Error("找不到任何可點擊的目標");
+        }
+    }
 };
 
 // 插入工作項目
@@ -181,16 +214,16 @@ const inputOtherValues = async (frame, data) => {
     await frame.waitForSelector("#WorkDate_txt");
     await frame.evaluate(() => {
         const input = document.querySelector("#WorkDate_txt");
-        input.value = "2023-10-01";
+        input.value = data.date;
     });
     console.log("1");
     // 工時
     await frame.waitForSelector("#WorkHour");
-    await frame.type("#WorkHour", "8");
+    await frame.type("#WorkHour", data.time);
     console.log("2");
     // 描述
     await frame.waitForSelector("#WorkDesc");
-    await frame.type("#WorkDesc", "工作描述");
+    await frame.type("#WorkDesc", data.detail);
     console.log("3");
 };
 
@@ -218,7 +251,7 @@ const waitForKeywordInElements = async (
     );
 };
 
-runCrawler()
-    .then(() => console.log("done"))
-    .catch(console.error);
+// runCrawler()
+//     .then(() => console.log("done"))
+//     .catch(console.error);
 export { handleRequest };

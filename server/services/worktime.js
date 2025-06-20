@@ -15,6 +15,15 @@ export const getWorkTimeList = (req, res) => {
     res.json(data);
 };
 
+export const getDataByIds = (ids) => {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        throw new Error("Invalid input data");
+    }
+    const placeholders = ids.map(() => "?").join(",");
+    const query = `SELECT * FROM WorkTime WHERE id IN (${placeholders})`;
+    return db.prepare(query).all(ids);
+};
+
 export const timeReport = (req, res) => {
     try {
         // 從資料庫獲取工時資料
