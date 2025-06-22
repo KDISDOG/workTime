@@ -15,6 +15,29 @@ export const getWorkTimeList = (req, res) => {
     res.json(data);
 };
 
+export const getDataByIds = (ids) => {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        throw new Error("Invalid input data");
+    }
+    const placeholders = ids.map(() => "?").join(",");
+    const query = `SELECT * FROM WorkTime WHERE id IN (${placeholders})`;
+    return db.prepare(query).all(ids);
+};
+
+export const getPyrdOptions = (req, res) => {
+    const rows = db
+        .prepare(
+            "SELECT DISTINCT pyrd FROM WorkTime WHERE pyrd IS NOT NULL AND pyrd != '' ORDER BY pyrd DESC"
+        )
+        .all();
+    res.json(
+        rows.map((row) => ({
+            key: row.pyrd,
+            value: row.pyrd,
+        }))
+    );
+};
+
 export const timeReport = (req, res) => {
     try {
         // 從資料庫獲取工時資料
@@ -98,6 +121,34 @@ export const timeReport = (req, res) => {
     }
 };
 
+export const updateIsReportColumn = async (ids) => {
+    try {
+        // 檢查 isReport 欄位是否存在，若不存在則新增
+        const pragma = db.prepare("PRAGMA table_info(WorkTime)").all();
+        const hasIsReport = pragma.some((col) => col.name === "isReport");
+        if (!hasIsReport) {
+            db.prepare(
+                "ALTER TABLE WorkTime ADD COLUMN isReport INTEGER DEFAULT 0"
+            ).run();
+        }
+        if (Array.isArray(ids)) {
+            const stmt = db.prepare(
+                "UPDATE WorkTime SET isReport = 1 WHERE id = ?"
+            );
+            ids.forEach((singleId) => {
+                stmt.run(singleId);
+            });
+        } else {
+            const stmt = db.prepare(
+                "UPDATE WorkTime SET isReport = 1 WHERE id = ?"
+            );
+            stmt.run(ids);
+        }
+    } catch (err) {
+        console.error("更新 isReport 欄位時發生錯誤:", err);
+    }
+};
+
 export const worktime = async (req, res) => {
     console.log("收到 worktime 請求");
 
@@ -156,22 +207,21 @@ export const worktime = async (req, res) => {
                 if (fieldData && field.type_config?.options?.length > 0) {
                     // 如果是 object 就是要找 label
                     console.log("1");
-                    SR = fieldData.label.slice(-3);
+                    SR = fieldData.label;
                     if (SR) break; // 找到後就跳出迴圈
                 }
                 if (Array.isArray(field?.value) && field.value[0]) {
                     console.log("2");
-                    SR = field.value[0].slice(-3);
+                    SR = field.value[0];
                     if (SR) break; // 找到後就跳出迴圈
                 }
                 if (typeof field?.value === "string") {
                     console.log("3");
-                    SR = field.value.slice(-3);
+                    SR = field.value;
                     if (SR) break; // 找到後就跳出迴圈
                 }
             }
         }
-        console.log("SR", SR);
         const { date, taskId, pyrd, workitem, time, detail } = projects[0];
         insertStmt.run(
             date,
