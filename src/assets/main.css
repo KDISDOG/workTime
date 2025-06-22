@@ -12,10 +12,20 @@ html{
 body{
   overflow-x: hidden;
 }
-
-button{
-  @apply bg-blue-500 border hover:bg-blue-700 text-white font-bold py-2 px-4 rounded
+button:disabled{
+  cursor: not-allowed;
 }
+.button1{
+  @apply bg-blue-500 border hover:bg-blue-700 cursor-pointer text-white font-bold py-2 px-4 rounded
+}
+
+.buttonCancel{
+  @apply bg-gray-500 border hover:bg-gray-700 cursor-pointer text-white font-bold py-2 px-4 rounded
+}
+.button2{
+  @apply bg-teal-500 border hover:bg-teal-700 cursor-pointer text-white font-bold py-2 px-4 rounded
+}
+
 
 ::-webkit-scrollbar{
   height: 4px;

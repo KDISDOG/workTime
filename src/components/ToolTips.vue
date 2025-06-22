@@ -1,6 +1,6 @@
 <template>
     <Transition name="fade" appear>
-        <div v-if="show" class="absolute top-12 left-1/2 -translate-x-1/2 flex items-center gap-2 opacity-100">
+        <div v-if="show" class="absolute top-12 left-1/2 -translate-x-1/2 flex items-center gap-2 z-50 opacity-100">
             <div :class="props.state ? 'bg-green-500' : 'bg-red-500'"
                 class="flex gap-2 text-white px-6 py-2 rounded-md">
                 <component :is="props.state ? CheckCircleIcon : XCircleIcon" class="size-6"></component>
