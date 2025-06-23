@@ -115,10 +115,11 @@
                         <th class="py-2"></th>
                         <th class="py-2"></th>
                         <th class="py-2"></th>
+                        <th class="py-2"></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="w-full text-center px-2 h-12 border border-gray-600"
+                    <tr class="w-full text-center px-2 h-12 border border-gray-600 hover:bg-[#b2b76d63]"
                         v-for="(item, index) in workTimeData" :key="item.id" :class="{
                             'bg-gray-900': index % 2 == 0,
                             '!bg-[#4c5159]': selectedId === item.id,
@@ -133,13 +134,13 @@
                         </td>
                         <td class="px-2">
                             <span v-if="!editItem[item.id]">{{ item.pyrd }}</span>
-                            <input class="!p-1 w-12" v-model="editItem[item.id].pyrd" v-else type="text" />
+                            <input class="!p-1 w-24" v-model="editItem[item.id].pyrd" v-else type="text" />
                         </td>
                         <td class="px-2">
                             <span v-if="!editItem[item.id]">{{
                                 item.SR ? item.SR.slice(-3) : ""
-                            }}</span>
-                            <input class="!p-1 w-32" v-model="editItem[item.id].SR" v-else type="text" />
+                                }}</span>
+                            <input class="!p-1 w-36" v-model="editItem[item.id].SR" v-else type="text" />
                         </td>
                         <td class="px-2">
                             <span v-if="!editItem[item.id]">{{ item.taskname }}</span>
@@ -200,12 +201,15 @@
                             <Square2StackIcon class="size-8 cursor-pointer" @click="handleCopy(item)">
                             </Square2StackIcon>
                         </td>
+                        <td class="px-2">
+                            <button class="!p-2 button2 text-sm " @click="isReported(item.id)">已/未報</button>
+                        </td>
                     </tr>
                 </tbody>
             </table>
         </div>
         <div class="flex gap-12">
-            <button class="button2" @click="clickReportBtn">報工時</button>
+            <button class="button2" @click="clickReportBtn">自動報工時</button>
             <button class="button1" @click="saveEdit">全部儲存</button>
         </div>
     </div>
@@ -242,7 +246,15 @@ const checkedItems = computed(() =>
         .map((id) => workTimeData.value.find((item) => item.id === id))
         .filter(Boolean)
 );
-
+const debounce = (func, delay) => {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+};
 const getWorkTimeList = async () => {
     try {
         const res = await axios.get("/api/worktime/getWorkTimeList", {
@@ -381,6 +393,16 @@ const saveEdit = async () => {
     }
 };
 
+const isReported = debounce(async (id) => {
+    const response = await axios.post(`/api/worktime/isReported`, { ids: [id] });
+    if (response.status === 200) {
+        toolTipState.value = true;
+        showState.value++;
+        toolTipText.value = "已更新工時狀態";
+        getWorkTimeList();
+    }
+}, 100);
+
 const handleCheckboxChange = (event, id) => {
     if (event.target.checked) {
         checkboxState.value.push(id);
@@ -399,15 +421,7 @@ const clickReportBtn = () => {
     modalConfirmType.value = "report";
     confirmModalState.value = true;
 };
-const debounce = (func, delay) => {
-    let timer;
-    return function (...args) {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            func.apply(this, args);
-        }, delay);
-    };
-};
+
 const reportWorkTime = debounce(async () => {
     try {
         const res = await axios.post("/api/crawler", {

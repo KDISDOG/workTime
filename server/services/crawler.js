@@ -46,7 +46,35 @@ const runCrawler = async (data, { userName, password }) => {
         browser = await puppeteer.launch({
             headless: false,
             defaultViewport: null,
-            args: ["--start-maximized"],
+            args: [
+                "--start-maximized",
+                "--disable-gpu",
+                "--disable-dev-shm-usage",
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-extensions",
+                "--disable-background-networking",
+                "--disable-background-timer-throttling",
+                "--disable-backgrounding-occluded-windows",
+                "--disable-breakpad",
+                "--disable-client-side-phishing-detection",
+                "--disable-component-update",
+                "--disable-default-apps",
+                "--disable-features=site-per-process",
+                "--disable-hang-monitor",
+                "--disable-ipc-flooding-protection",
+                "--disable-popup-blocking",
+                "--disable-prompt-on-repost",
+                "--disable-renderer-backgrounding",
+                "--disable-sync",
+                "--force-color-profile=srgb",
+                "--metrics-recording-only",
+                "--no-first-run",
+                "--safebrowsing-disable-auto-update",
+                "--enable-automation",
+                "--password-store=basic",
+                "--use-mock-keychain",
+            ],
         });
         const page = await browser.newPage();
         await page.goto(
@@ -265,7 +293,7 @@ const inputOtherValues = async (frame, data) => {
     await frame.waitForSelector("#WorkDate_txt");
     await frame.evaluate((date) => {
         const input = document.querySelector("#WorkDate_txt");
-        input.value = date;
+        input.value = date.replaceAll("-", "/");
     }, data.date);
     console.log("1");
     // 工時

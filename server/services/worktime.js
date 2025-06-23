@@ -24,6 +24,20 @@ export const getDataByIds = (ids) => {
     return db.prepare(query).all(ids);
 };
 
+export const isReported = (req, res) => {
+    const { ids } = req.body;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: "Invalid input data" });
+    }
+    try {
+        updateIsReportColumn(ids);
+        res.status(200).json({ message: "更新成功" });
+    } catch (error) {
+        console.error("發生錯誤:", error);
+        res.status(500).json({ message: "更新資料時發生錯誤" });
+    }
+};
+
 export const getPyrdOptions = (req, res) => {
     const rows = db
         .prepare(
@@ -133,7 +147,7 @@ export const updateIsReportColumn = async (ids) => {
         }
         if (Array.isArray(ids)) {
             const stmt = db.prepare(
-                "UPDATE WorkTime SET isReport = 1 WHERE id = ?"
+                "UPDATE WorkTime SET isReport = CASE WHEN isReport = 1 THEN 0 ELSE 1 END WHERE id = ?"
             );
             ids.forEach((singleId) => {
                 stmt.run(singleId);

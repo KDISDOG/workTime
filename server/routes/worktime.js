@@ -7,6 +7,7 @@ import {
     updateWorkTime,
     deleteList,
     getPyrdOptions,
+    isReported,
 } from "../services/worktime.js";
 const router = express.Router();
 
@@ -21,6 +22,9 @@ router.get("/getPyrdOptions", getPyrdOptions);
 
 // 新增專案資料
 router.post("/worktime", worktime);
+
+// 更新工時已報
+router.post("/isReported", isReported);
 
 // 更新專案資料
 router.patch("/updateWorkTime", updateWorkTime);
