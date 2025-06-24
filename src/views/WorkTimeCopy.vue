@@ -99,7 +99,7 @@
     <div class="flex flex-col items-center justify-center gap-6 px-4 py-6">
         <h1 class="text-2xl font-bold text-center">工時複製 (2個月內)</h1>
         <div class="overflow-y-auto h-[70vh]">
-            <table class="table-auto w-[85vw]">
+            <table class="table-auto w-[90vw]">
                 <thead class="sticky top-0">
                     <tr class="w-full bg-[#030511]">
                         <th></th>
@@ -139,7 +139,7 @@
                         <td class="px-2">
                             <span v-if="!editItem[item.id]">{{
                                 item.SR ? item.SR.slice(-3) : ""
-                                }}</span>
+                            }}</span>
                             <input class="!p-1 w-36" v-model="editItem[item.id].SR" v-else type="text" />
                         </td>
                         <td class="px-2">
