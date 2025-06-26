@@ -37,12 +37,33 @@ const handleRequest = async (req, res) => {
     }
 };
 
+// 重試機制的包裝函數
+async function withRetry(fn, args = [], retryCount = 2, stepName = "") {
+    let lastError;
+    for (let i = 0; i <= retryCount; i++) {
+        try {
+            return await fn(...args);
+        } catch (err) {
+            lastError = err;
+            console.warn(
+                `【重試機制】第${i + 1}次嘗試${stepName}失敗：`,
+                err.message
+            );
+            if (i < retryCount)
+                await new Promise((res) => setTimeout(res, 1000));
+        }
+    }
+    throw new Error(
+        `【重試機制】${stepName}多次重試仍失敗：${lastError.message}`
+    );
+}
+
 const runCrawler = async (data, { userName, password }) => {
     const successIds = [];
     const failIds = [];
     let browser;
     try {
-        console.log("啟動爬蟲...");
+        console.log("[啟動爬蟲] 開始執行...");
         browser = await puppeteer.launch({
             headless: false,
             defaultViewport: null,
@@ -80,14 +101,26 @@ const runCrawler = async (data, { userName, password }) => {
         await page.goto(
             "https://efgp.yuchens.com:8086/NaNaWeb/GP/ForwardIndex?hdnMethod=findIndexForward"
         );
-        await handleLogin(page, { userName, password });
+        await withRetry(handleLogin, [page, { userName, password }], 2, "登入");
         for (const el of data) {
             try {
-                await goToApplicationForm(page);
-                await handleDataInjection(page, el);
+                console.log(
+                    `\n[處理資料] id=${el.id}, 日期=${el.date}, 工時=${el.time}`
+                );
+                await withRetry(
+                    goToApplicationForm,
+                    [page],
+                    2,
+                    "進入工時申請單"
+                );
+                await withRetry(handleDataInjection, [page, el], 2, "資料注入");
                 successIds.push(el.id);
+                console.log(`[成功] id=${el.id} 資料已成功注入`);
             } catch (err) {
-                console.error("處理單筆資料時發生錯誤，或重新再試", err);
+                console.error(
+                    `[失敗] id=${el.id} 處理單筆資料時發生錯誤：`,
+                    err.message
+                );
                 failIds.push(el.id);
             }
         }
@@ -98,13 +131,14 @@ const runCrawler = async (data, { userName, password }) => {
             message:
                 failIds.length === 0
                     ? "全部資料已成功注入"
-                    : "部分資料注入失敗",
+                    : `部分資料注入失敗`,
         };
     } catch (err) {
-        console.error("runCrawler 發生錯誤:", err);
+        console.error("[致命錯誤] runCrawler 發生錯誤:", err.message);
         return { success: false, error: err.message, successIds, failIds };
     } finally {
         if (browser) await browser.close();
+        console.log("[結束爬蟲] 已關閉瀏覽器");
     }
 };
 
@@ -138,15 +172,23 @@ const goToApplicationForm = async (page) => {
 
     await page.waitForSelector("#ifmFucntionLocation");
     const functionFrame = await page.$("#ifmFucntionLocation");
+    if (!functionFrame) {
+        throw new Error("Function iframe (#ifmFucntionLocation) not found.");
+    }
     const functionContentFrame = await functionFrame.contentFrame();
+    if (!functionContentFrame) {
+        throw new Error("Function content frame is null.");
+    }
     await functionContentFrame.waitForSelector(
-        ".processCategory[data-process-category='9df75040e41910048cdea4cc20f29288']"
+        ".processCategory[data-process-category='9df75040e41910048cdea4cc20f29288']",
+        { timeout: 5000 }
     );
     await functionContentFrame.evaluate(() =>
         toggleProcessCategoryCotainer("9df75040e41910048cdea4cc20f29288")
     );
     await functionContentFrame.waitForSelector(
-        ".processPackage[data-process-name='工時申請單']"
+        ".processPackage[data-process-name='工時申請單']",
+        { timeout: 5000 }
     );
     await functionContentFrame.evaluate(() =>
         prepareProcessData("a9c1ba73f4d410048553e100bf189988", "BPMN")
@@ -183,11 +225,36 @@ const handleDataInjection = async (page, data) => {
 
     // 提交表單
     await functionContentFrame.evaluate(() => invokeProcessWithoutSave());
-    await waitForKeywordInElements(
-        functionContentFrame,
-        "header.panel-heading",
-        "流程已經發起成功"
-    );
+
+    // 等待成功訊息出現
+    let success = false;
+    try {
+        // 重新取得 frame，等待成功訊息
+        await page.waitForFunction(
+            () => {
+                const frames = Array.from(window.parent.frames);
+                for (const f of frames) {
+                    try {
+                        const header = f.document.querySelector(
+                            "header.panel-heading"
+                        );
+                        if (
+                            header &&
+                            header.textContent.includes("流程已經發起成功")
+                        ) {
+                            return true;
+                        }
+                    } catch (e) {}
+                }
+                return false;
+            },
+            { timeout: 10000 }
+        );
+        success = true;
+    } catch (e) {
+        // 若沒等到訊息，仍繼續流程
+        console.warn("未偵測到流程成功訊息，但流程可能已送出");
+    }
 };
 
 // 插入 SR
@@ -206,57 +273,64 @@ const insertSr = async (page, pyrd, SR) => {
         })
     );
     const popup = await newPagePromise;
-
-    // 等待彈窗加載完成
-    const chevronSelector = ".spenTools.pull-right a.fa.fa-chevron-down";
-    await popup.waitForSelector(chevronSelector, {
-        visible: true,
-    });
-    const chevronElement = await popup.$(chevronSelector);
-    if (chevronElement) {
-        // 確保元素可點擊
-        await popup.evaluate((el) => {
-            el.scrollIntoView({
-                behavior: "auto",
-                block: "center",
-                inline: "center",
-            });
-        }, chevronElement);
-        await chevronElement.click();
-    }
-    await popup.waitForSelector("#_cuzDataChooser_criteria_1");
-    if (SR) {
-        await popup.type("#_cuzDataChooser_criteria_1", SR); // 輸入 SR
-        // 點擊搜尋
-        await popup.waitForSelector("#_btnCustomDataChooser_query");
-        await popup.click("#_btnCustomDataChooser_query");
-        // 點擊目標
-        try {
-            await waitForKeywordInElements(
-                popup,
-                "#divBpmList_pcTable tbody tr td",
-                SR
-            ).then((el) => el.click());
-        } catch (error) {
+    try {
+        // 等待彈窗加載完成
+        const chevronSelector = ".spenTools.pull-right a.fa.fa-chevron-down";
+        await popup.waitForSelector(chevronSelector, {
+            visible: true,
+        });
+        const chevronElement = await popup.$(chevronSelector);
+        if (chevronElement) {
+            // 確保元素可點擊
+            await popup.evaluate((el) => {
+                el.scrollIntoView({
+                    behavior: "auto",
+                    block: "center",
+                    inline: "center",
+                });
+            }, chevronElement);
+            await chevronElement.click();
+        }
+        await popup.waitForSelector("#_cuzDataChooser_criteria_1");
+        if (SR) {
+            await popup.type("#_cuzDataChooser_criteria_1", SR); // 輸入 SR
+            // 點擊搜尋
+            await popup.waitForSelector("#_btnCustomDataChooser_query");
             await popup.click("#_btnCustomDataChooser_query");
-            await waitForKeywordInElements(
-                popup,
-                "#divBpmList_pcTable tbody tr td",
-                SR
-            ).then((el) => el.click());
-        }
-    } else {
-        await popup.type("#_cuzDataChooser_criteria_0", pyrd); // 輸入 pyrd
-        // 點擊搜尋
-        await popup.waitForSelector("#_btnCustomDataChooser_query");
-        await popup.click("#_btnCustomDataChooser_query");
-        // 點擊第一個目標
-        const elements = await popup.$$("#divBpmList_pcTable tbody tr td");
-        if (elements.length > 0) {
-            await elements[0].click();
+            // 點擊目標
+            try {
+                await withRetry(
+                    waitForKeywordInElements,
+                    [popup, "#divBpmList_pcTable tbody tr td", SR],
+                    1,
+                    "選取SR"
+                ).then((el) => el.click());
+            } catch (error) {
+                await popup.click("#_btnCustomDataChooser_query");
+                await withRetry(
+                    waitForKeywordInElements,
+                    [popup, "#divBpmList_pcTable tbody tr td", SR],
+                    1,
+                    "選取SR重試"
+                ).then((el) => el.click());
+            }
         } else {
-            throw new Error("找不到任何可點擊的目標");
+            await popup.type("#_cuzDataChooser_criteria_0", pyrd); // 輸入 pyrd
+            // 點擊搜尋
+            await popup.waitForSelector("#_btnCustomDataChooser_query");
+            await popup.click("#_btnCustomDataChooser_query");
+            // 點擊第一個目標
+            const elements = await popup.$$("#divBpmList_pcTable tbody tr td");
+            if (elements.length > 0) {
+                await elements[0].click();
+            } else {
+                throw new Error("找不到任何可點擊的目標");
+            }
         }
+        console.log("[關閉彈窗] SR選擇完畢，關閉彈窗");
+    } catch (err) {
+        console.error("[彈窗錯誤] SR選擇彈窗處理失敗：", err.message);
+        throw err;
     }
 };
 
@@ -276,15 +350,19 @@ const insertWorkItem = async (page, workitem = "系統開發") => {
         })
     );
     const popup = await newPagePromise;
-
-    // 等待彈窗加載完成
-    await popup.waitForSelector("#divBpmList_pcTable tbody tr td");
-    // 找到內容為 workitem 的 td 並點擊其所在的 tr
-    await waitForKeywordInElements(
-        popup,
-        "#divBpmList_pcTable tbody tr td",
-        workitem
-    ).then((el) => el.click());
+    try {
+        await popup.waitForSelector("#divBpmList_pcTable tbody tr td");
+        await withRetry(
+            waitForKeywordInElements,
+            [popup, "#divBpmList_pcTable tbody tr td", workitem],
+            1,
+            "選取工作項目"
+        ).then((el) => el.click());
+        console.log("[關閉彈窗] 工作項目選擇完畢，關閉彈窗");
+    } catch (err) {
+        console.error("[彈窗錯誤] 工作項目選擇彈窗處理失敗：", err.message);
+        throw err;
+    }
 };
 
 const inputOtherValues = async (frame, data) => {

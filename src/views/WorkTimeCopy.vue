@@ -96,7 +96,7 @@
                 @click="closeReportResult">關閉</button>
         </template>
     </ConfirmModal>
-    <div class="flex flex-col items-center justify-center gap-6 px-4 py-6">
+    <div class="flex flex-col items-center justify-center gap-2 2xl:gap-6 px-4 py-2 2xl:py-6">
         <h1 class="text-2xl font-bold text-center">工時複製 (2個月內)</h1>
         <div class="overflow-y-auto h-[70vh]">
             <table class="table-auto w-[90vw]">
@@ -139,7 +139,7 @@
                         <td class="px-2">
                             <span v-if="!editItem[item.id]">{{
                                 item.SR ? item.SR.slice(-3) : ""
-                            }}</span>
+                                }}</span>
                             <input class="!p-1 w-36" v-model="editItem[item.id].SR" v-else type="text" />
                         </td>
                         <td class="px-2">
@@ -165,6 +165,9 @@
                                 <option value="教育訓練">教育訓練</option>
                                 <option value="行政作業">行政作業</option>
                                 <option value="部門會議">部門會議</option>
+                                <option value="業務推廣">業務推廣</option>
+                                <option value="官方網站">官方網站</option>
+                                <option value="通用元件">通用元件</option>
                             </select>
                         </td>
                         <td class="px-2">
@@ -186,7 +189,7 @@
                             <span v-if="!editItem[item.id]">{{ item.detail }}</span>
                             <textarea class="!p-1 w-36" v-model="editItem[item.id].detail" v-else></textarea>
                         </td>
-                        <td class="px-2">
+                        <td class="">
                             <PencilIcon v-if="!editItem[item.id]" class="cursor-pointer size-8"
                                 @click="handleEdit(item)">
                                 編輯
@@ -194,10 +197,10 @@
                             <ArrowUturnLeftIcon v-else class="cursor-pointer size-8" @click="cancelEdit(item)">取消
                             </ArrowUturnLeftIcon>
                         </td>
-                        <td class="px-2">
+                        <td class="">
                             <TrashIcon class="cursor-pointer size-8" @click="handleModalPop(item)">刪除</TrashIcon>
                         </td>
-                        <td class="px-2">
+                        <td class="">
                             <Square2StackIcon class="size-8 cursor-pointer" @click="handleCopy(item)">
                             </Square2StackIcon>
                         </td>
@@ -398,6 +401,7 @@ const isReported = debounce(async (id) => {
     if (response.status === 200) {
         toolTipState.value = true;
         showState.value++;
+        checkboxState.value = checkboxState.value.filter((item) => item !== id);
         toolTipText.value = "已更新工時狀態";
         getWorkTimeList();
     }
@@ -462,10 +466,18 @@ const reportWorkTime = debounce(async () => {
 }, 500);
 const closeReportResult = () => {
     confirmModalState.value = false;
+    // 從checkboxState中移除已成功的id
+    checkboxState.value = checkboxState.value.filter(id => !(reportResult.value.success || []).includes(id));
     reportResult.value = {};
     reportResultState.value = true;
+
 };
 onMounted(() => {
     getWorkTimeList();
+    document.querySelectorAll("input[type='date']").forEach((input) => {
+        input.addEventListener("click", (e) => {
+            e.target.showPicker();
+        });
+    });
 });
 </script>

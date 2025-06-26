@@ -54,6 +54,7 @@ export const getPyrdOptions = (req, res) => {
 
 export const timeReport = (req, res) => {
     try {
+        ensureLimitTimeColumn();
         // 從資料庫獲取工時資料
         const rows = db
             .prepare(
@@ -132,6 +133,15 @@ export const timeReport = (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "獲取資料失敗", details: err.message });
+    }
+};
+
+// 確保 WorkTime 資料表有 limitTime 欄位，若無則新增
+const ensureLimitTimeColumn = () => {
+    const pragma = db.prepare("PRAGMA table_info(WorkTime)").all();
+    const hasLimitTime = pragma.some((col) => col.name === "limitTime");
+    if (!hasLimitTime) {
+        db.prepare("ALTER TABLE WorkTime ADD COLUMN limitTime REAL").run();
     }
 };
 

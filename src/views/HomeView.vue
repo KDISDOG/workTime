@@ -33,6 +33,9 @@
 				<option value="教育訓練">教育訓練</option>
 				<option value="行政作業">行政作業</option>
 				<option value="部門會議">部門會議</option>
+				<option value="業務推廣">業務推廣</option>
+				<option value="官方網站">官方網站</option>
+				<option value="通用元件">通用元件</option>
 			</select>
 			<label for="time">工時:</label>
 			<input type="number" name="time" v-model.number="formData.time" placeholder="工時" />
@@ -201,5 +204,10 @@ const getNextHolidaty = async () => {
 onMounted(() => {
 	getPyrdOptions();
 	getNextHolidaty();
+	document.querySelectorAll("input[type='date']").forEach((input) => {
+		input.addEventListener("click", (e) => {
+			e.target.showPicker();
+		});
+	});
 });
 </script>

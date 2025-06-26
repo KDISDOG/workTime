@@ -4,9 +4,9 @@ const router = useRoute();
 </script>
 
 <template>
-    <header class="flex items-center justify-between p-4 bg-gray-800 gap-6 text-white">
+    <header class="flex items-center justify-between px-4 2xl:py-4 py-0  bg-gray-800 gap-6 text-white">
         <div class="flex items-center gap-3">
-            <img class="w-20" src="/51121.gif" alt="" />
+            <img class="2xl:w-20 w-15" src="/51121.gif" alt="" />
             <h1 class="text-3xl p-1">工時管理系統</h1>
         </div>
         <nav class="flex gap-6">
