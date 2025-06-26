@@ -7,41 +7,54 @@
 		<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
 		<span class="ml-3 text-white">紀錄中，請稍候...</span>
 	</div>
-	<div class="flex flex-col items-center justify-center gap-6 px-4 py-6">
+	<div class="flex flex-col items-center justify-center gap-2 2xl:gap-6 px-4 py-2 2xl:py-6">
 		<h1 class="text-2xl font-bold">工時輸入</h1>
-		<form class="flex flex-col items-center justify-center gap-2 mt-8">
-			<label for="date">日期:</label>
-			<input type="date" name="date" v-model="formData.date" placeholder="時間" />
-			<label for="PYRD">PYRD:</label>
-			<input type="text" name="PYRD" v-model.trim="formData.pyrd" placeholder="請填寫完整PYRD" list="pyrd-list" />
-			<datalist id="pyrd-list">
-				<option v-for="option in pyrdOptions" :key="option.key" :value="option.value" />
-			</datalist>
-			<label for="taskId">taskId:</label>
-			<input type="text" name="taskId" v-model.trim="formData.taskId" placeholder="taskId" />
-			<label for="workItem">workItem:</label>
-			<select name="workItem" v-model="formData.workitem">
-				<option value="需求發起">需求發起</option>
-				<option value="系統架構設計">系統架構設計</option>
-				<option value="系統開發">系統開發</option>
-				<option value="系統測試驗證">系統測試驗證</option>
-				<option value="產品發佈">產品發佈</option>
-				<option value="產品行銷">產品行銷</option>
-				<option value="產品審查">產品審查</option>
-				<option value="Other">Other</option>
-				<option value="技術研究">技術研究</option>
-				<option value="教育訓練">教育訓練</option>
-				<option value="行政作業">行政作業</option>
-				<option value="部門會議">部門會議</option>
-				<option value="業務推廣">業務推廣</option>
-				<option value="官方網站">官方網站</option>
-				<option value="通用元件">通用元件</option>
-			</select>
-			<label for="time">工時:</label>
-			<input type="number" name="time" v-model.number="formData.time" placeholder="工時" />
-			<label for="time">細項:</label>
-			<textarea type="text" name="time" @keydown="getNewLine" v-model="formData.detail"
-				placeholder="1.XXXX"></textarea>
+		<form
+			class="flex flex-col items-center 2xl:justify-center content-center flex-wrap 2xl:flex-nowrap gap-2 mt-8 2xl:h-auto h-[47vh]">
+			<div class="flex flex-col gap-2 w-1/2 2xl:w-full">
+				<label class="text-center" for="date">日期:</label>
+				<input type="date" name="date" v-model="formData.date" placeholder="時間" />
+			</div>
+			<div class="flex flex-col gap-2 w-1/2 2xl:w-full">
+				<label class="text-center" for="PYRD">PYRD:</label>
+				<input type="text" name="PYRD" v-model.trim="formData.pyrd" placeholder="請填寫完整PYRD" list="pyrd-list" />
+				<datalist id="pyrd-list">
+					<option v-for="option in pyrdOptions" :key="option.key" :value="option.value" />
+				</datalist>
+			</div>
+			<div class="flex flex-col gap-2 w-1/2 2xl:w-full">
+				<label class="text-center" for="taskId">taskId:</label>
+				<input type="text" name="taskId" v-model.trim="formData.taskId" placeholder="taskId" />
+			</div>
+			<div class="flex flex-col gap-2 w-1/2 2xl:w-full">
+				<label class="text-center" for="workItem">workItem:</label>
+				<select name="workItem" v-model="formData.workitem">
+					<option value="需求發起">需求發起</option>
+					<option value="系統架構設計">系統架構設計</option>
+					<option value="系統開發">系統開發</option>
+					<option value="系統測試驗證">系統測試驗證</option>
+					<option value="產品發佈">產品發佈</option>
+					<option value="產品行銷">產品行銷</option>
+					<option value="產品審查">產品審查</option>
+					<option value="Other">Other</option>
+					<option value="技術研究">技術研究</option>
+					<option value="教育訓練">教育訓練</option>
+					<option value="行政作業">行政作業</option>
+					<option value="部門會議">部門會議</option>
+					<option value="業務推廣">業務推廣</option>
+					<option value="官方網站">官方網站</option>
+					<option value="通用元件">通用元件</option>
+				</select>
+			</div>
+			<div class="flex flex-col gap-2 w-1/2 2xl:w-full">
+				<label class="text-center" for="time">工時:</label>
+				<input type="number" name="time" v-model.number="formData.time" placeholder="工時" />
+			</div>
+			<div class="flex flex-col gap-2 w-1/2 2xl:w-full">
+				<label class="text-center" for="time">細項:</label>
+				<textarea type="text" name="time" @keydown="getNewLine" v-model="formData.detail"
+					placeholder="1.XXXX"></textarea>
+			</div>
 		</form>
 		<div class="flex gap-6">
 			<button class="button1" @click="handleRecord" type="submit">紀錄</button>
