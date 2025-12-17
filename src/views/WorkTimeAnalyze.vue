@@ -138,20 +138,21 @@ const limitTimeRule = (time) => {
     if (time <= 8) {
         return 4;
     }
-    if (time > 8 && time <= 24) {
+    if (time > 8 && time <= 16) {
         return 3.5;
     }
-    if (time > 24 && time <= 40) {
+    if (time > 16 && time <= 32) {
         return 3;
     }
-    if (time > 40 && time <= 120) {
+    if (time > 32 && time <= 48) {
+        return 2.5;
+    }
+    if (time > 48 && time <= 64) {
         return 2;
     }
-    if (time > 120 && time <= 240) {
-        return 1.75;
-    }
-    if (time > 240) {
-        return 1.5;
+    if (time > 64) {
+        const percent = Math.max(150 - Math.max((time / 8 - 10) * 5, 0), 105) / 100;
+        return percent;
     }
 };
 
