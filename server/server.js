@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import tokenRoutes from "./routes/token.js";
 import worktimeRoutes from "./routes/worktime.js";
+import crawlerRoutes from "./routes/crawler.js";
 const app = express();
 const port = 51121;
 // 取得 __dirname
@@ -25,6 +26,7 @@ app.use(express.static(path.join(__dirname, "../dist")));
 // 掛載 API 路由
 app.use("/api/token", tokenRoutes);
 app.use("/api/worktime", worktimeRoutes);
+app.use("/api/crawler", crawlerRoutes);
 
 // 讓 Vue 處理所有前端路由
 app.get("*", (req, res) => {
